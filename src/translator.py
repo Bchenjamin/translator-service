@@ -1,34 +1,70 @@
+import os
+from openai import AzureOpenAI
+from dotenv import load_dotenv
+load_dotenv()
+
+from sentence_transformers import SentenceTransformer
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+client = AzureOpenAI (
+    api_key = os.getenv('AZURE_OPENAI_API_KEY'),
+    api_version="2024-02-15-preview",
+    azure_endpoint="https://recitation8.openai.azure.com/"
+)
+
+def get_language(post: str) -> str:
+    context = f"What language is this in:\n\n{post}? Return just the language. If you cannot determine the language, return 'Cannot determine language'."
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": context
+            }
+        ]
+    )
+    return response.choices[0].message.content
+    
+
+def get_translation(post: str) -> str:
+    context = f"Translate the following text to English:\n\n{post}. Return just the translation. If the text is has no meaningful phrases or is just numbers, return 'Unintelligible or malformed text' as the translation"
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": context
+            }
+        ]
+    )
+    return response.choices[0].message.content
+
+def eval_single_response_translation(expected_answer: str, llm_response: str) -> float:
+  embeddings_expected = model.encode(expected_answer)
+  embeddings_response = model.encode(llm_response)
+  similarity = model.similarity(embeddings_expected, embeddings_response).item()
+  return similarity
+
+
 def translate_content(content: str) -> tuple[bool, str]:
-    if content == "这是一条中文消息":
-        return False, "This is a Chinese message"
-    if content == "Ceci est un message en français":
-        return False, "This is a French message"
-    if content == "Esta es un mensaje en español":
-        return False, "This is a Spanish message"
-    if content == "Esta é uma mensagem em português":
-        return False, "This is a Portuguese message"
-    if content  == "これは日本語のメッセージです":
-        return False, "This is a Japanese message"
-    if content == "이것은 한국어 메시지입니다":
-        return False, "This is a Korean message"
-    if content == "Dies ist eine Nachricht auf Deutsch":
-        return False, "This is a German message"
-    if content == "Questo è un messaggio in italiano":
-        return False, "This is an Italian message"
-    if content == "Это сообщение на русском":
-        return False, "This is a Russian message"
-    if content == "هذه رسالة باللغة العربية":
-        return False, "This is an Arabic message"
-    if content == "यह हिंदी में संदेश है":
-        return False, "This is a Hindi message"
-    if content == "นี่คือข้อความภาษาไทย":
-        return False, "This is a Thai message"
-    if content == "Bu bir Türkçe mesajdır":
-        return False, "This is a Turkish message"
-    if content == "Đây là một tin nhắn bằng tiếng Việt":
-        return False, "This is a Vietnamese message"
-    if content == "Esto es un mensaje en catalán":
-        return False, "This is a Catalan message"
-    if content == "This is an English message":
-        return True, "This is an English message"
-    return True, content
+    if not isinstance(content, str):
+        return (False, "Unexpected input: Non-string type")
+    if (content == ""):
+        return (False, "Unexpected input: Empty String")
+
+    language = get_language(content)
+
+    if language == "Cannot determine language":
+        return (False, "Unable to determine language")
+
+    if language == "English":
+        return (True, content)
+
+    translated_text = get_translation(content)
+
+    if translated_text == "Unintelligible or malformed text":
+        return (False, "Translation failed")
+    else:
+        return (False, translated_text)
