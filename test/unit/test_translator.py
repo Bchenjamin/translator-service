@@ -60,18 +60,26 @@ def test_translate_gibberish_message():
 # Integration Tests
 @patch.object(src.translator.client.chat.completions, 'create')
 def test_llm_normal_response(mocker):
+    mocker.return_value.choices[0].message.content = "It's a beautiful day for a walk"
+    is_english, translated_content = translate_content("C'est une belle journée pour une promenade.")
+    assert is_english == False, "Expected the content to be recognized as non-English"
+    similarity_score = eval_single_response_translation("It's a beautiful day for a walk.", translated_content)
+    assert similarity_score >= 0.9, f"Similarity score: {similarity_score}"
+
     mocker.return_value.choices[0].message.content = "This is a Chinese message."
     is_english, translated_content = translate_content("这是一条中文消息")
     assert is_english == False, "Expected the content to be recognized as non-English"
     similarity_score = eval_single_response_translation("This is a Chinese message.", translated_content)
     assert similarity_score >= 0.9, f"Similarity score: {similarity_score}"
 
+
 @patch.object(src.translator.client.chat.completions, 'create')
 def test_llm_gibberish_response(mocker):
-    mocker.return_value.choices[0].message.content = "Cannot determine language"
-    is_english, translated_content = translate_content("*+fe")
-    assert is_english == False, "Cannot determine language"
-    assert translated_content == "Cannot determine language"
+    mocker.return_value.choices[0].message.content = "afwe;lkfjawef"
+    is_english, translated_content = translate_content("Test")
+    assert is_english == False, "Expected the content to be not recognized as non-English"
+    similarity_score = eval_single_response_translation("afwe;lkfjawef", translated_content)
+    assert similarity_score >= 0.9, f"Similarity is actually {similarity_score}"
 
 
         
