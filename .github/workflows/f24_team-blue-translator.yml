@@ -64,4 +64,4 @@ jobs:
         with:
           app-name: 'team-blue-translator'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_A018AF75CD16484397C5B99468201FD1 }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_95D617F178534794876F0427B9EAC005 }}
