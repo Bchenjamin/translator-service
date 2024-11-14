@@ -9,6 +9,9 @@ on:
       - f24
   workflow_dispatch: # Usually called from deploy
 
+env:
+  AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+
 defaults:
   run:
     shell: bash
