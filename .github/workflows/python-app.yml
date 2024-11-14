@@ -5,9 +5,12 @@ name: Python application
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "f24" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "f24" ]
+
+env:
+  AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
 
 permissions:
   contents: read
@@ -27,6 +30,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install flake8 pytest
+        pip install -U sentence-transformers
+        pip install --quiet openai
+        pip install python-dotenv
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
