@@ -81,5 +81,12 @@ def test_llm_gibberish_response(mocker):
     similarity_score = eval_single_response_translation("afwe;lkfjawef", translated_content)
     assert similarity_score >= 0.9, f"Similarity is actually {similarity_score}"
 
+    mocker.return_value.choices[0].message.content = "1000"
+    is_english, translated_content = translate_content("Test")
+    assert is_english == False, "Expected the content to be not recognized as non-English"
+    similarity_score = eval_single_response_translation("1000", translated_content)
+    assert similarity_score >= 0.9, f"Similarity is actually {similarity_score}"
+
+
 
         
